@@ -37,7 +37,7 @@ class Player {
 
     // Display the description of the current room for the player
     observe() {
-        let x = 0;
+        
         for (const element of roomMap) {
 
             if (element.column === this.currentColumn &&
@@ -89,22 +89,50 @@ class Room {
     }
 }
 
-// Create the Rooms:  Room Number, Col, Row, Name, Description, Takeable Items[]
 let roomMap = [];
-roomMap.push(new Room(1, 1, 1, 'Library', 'You are in the library.  There is a desk in the middle of the room and a bookcase against the wall.\nThere are no doors.', ['vial', 'book']));
-roomMap.push(new Room(2, 2, 3, 'Study', 'There\'s a large desk against wall and several chairs throughout the room.', ['cookie', 'key']));
-roomMap.push(new Room(3, 2, 1, 'Kitchen', 'There\'s a butcher\'s block on the counter with one knife in it.', ['knife']));
-roomMap.push(new Room(4, 2, 2, 'Dining Room', 'You are in a beautiful dining room.  There\'s a long wooden dinner table with a glass of wine on it.', ['wine']));
+const readline = require('readline');
+const readlineInterface = readline.createInterface(process.stdin, process.stdout);
 
-let player = new Player('Dakota');
+function ask(questionText) {
+    return new Promise((resolve, reject) => {
+        readlineInterface.question(questionText, resolve);
+    });
+}
 
-// Show description and items in room 1
-player.observe();
+start();
 
-// Move to room 2 and show description and items
-player.move('east');
-player.observe();
-player.move('south');
-player.observe();
-player.move('south');
-player.observe();
+async function start() {
+    console.log('\n\n');
+    console.log(`You have worken up in a strange house that you are unfamilar with.\nYour task now is to find your way out safely.\nBeware as the house is filled with surprises, some of which could be your demise.\n`);
+    console.log('To find your way through the house, you can type the following commands:\n');
+    console.log('Move North, Move South, Move East, Move West - to move through the house');
+    console.log('Take - to pick up an item in a room and put it in your backpack.');
+    console.log('Observe - to see a description of the room you are current in and the items that exist in it.');
+    console.log('Use - to use an item that you have in your backpack.')
+
+
+    // Create the Rooms:  Room Number, Col, Row, Name, Description, Takeable Items[]
+    roomMap.push(new Room(1, 1, 1, 'Library', 'You are in the library.  There is a desk in the middle of the room and a bookcase against the wall.\nThere are no doors.', ['vial', 'book']));
+    roomMap.push(new Room(2, 2, 3, 'Study', 'There\'s a large desk against wall and several chairs throughout the room.', ['cookie', 'key']));
+    roomMap.push(new Room(3, 2, 1, 'Kitchen', 'There\'s a butcher\'s block on the counter with one knife in it.', ['knife']));
+    roomMap.push(new Room(4, 2, 2, 'Dining Room', 'You are in a beautiful dining room.  There\'s a long wooden dinner table with a glass of wine on it.', ['wine']));
+
+    let player = new Player('Dakota');
+
+    while (true) {
+        let answer = await ask('>_');
+        if (answer === 'exit') {
+            console.log('Thanks for playing!');
+            process.exit();
+        }
+        else if (answer === 'north'
+            || answer === 'south'
+            || answer === 'east'
+            || answer === 'west') {
+            player.move(answer);
+        }
+        else if (answer === 'observe') {
+            player.observe();
+        }
+    }
+}
