@@ -205,15 +205,16 @@ function showIntro() {
 
 function showCommands() {
     console.log('You can use the following commands to help you find your way out:\n');
-    console.log('    move north:  to walk north in a room.');
-    console.log('    move south:  to walk south in a room.');
-    console.log('    move east:   to walk east in a room.');
-    console.log('    move west:   to walk west in a room.');
-    console.log('    observe:     to see a description of the room you are currently in.');
-    console.log('    inventory:   to see a list of the items that are currently in your possession.');
-    console.log('    take:        to pick an item in a room up.');
-    console.log('    use:         to use an item that you have in your possession.');
-    console.log('    help:        to see this list of commands again.\n');
+    console.log('    move north:  walk north in a room.');
+    console.log('    move south:  walk south in a room.');
+    console.log('    move east:   walk east in a room.');
+    console.log('    move west:   walk west in a room.');
+    console.log('    observe:     see a description of the room you are currently in.');
+    console.log('    inventory:   see a list of the items that are currently in your possession.');
+    console.log('    take:        pick an item in a room up.');
+    console.log('    use:         use an item that you have in your possession.');
+    console.log('    help:        see this list of commands again.');
+    console.log('    exit:        quit the game\n');
 }
 
 async function start() {
