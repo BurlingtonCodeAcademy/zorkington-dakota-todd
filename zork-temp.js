@@ -1,3 +1,4 @@
+//  A test comment!
 class House {
     constructor() {
         this.roomCollection = [];
