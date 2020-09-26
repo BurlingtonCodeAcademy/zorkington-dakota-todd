@@ -68,8 +68,9 @@ class Item {
         this.roomNumber = roomNumber;
         this.name = name;
         this.description = desc;
-        this.takeable = false;
+        this.takeable = takeable;
         this.itemStatus = 'in room'
+        this.useStatus = null;
     }
 
     markItemTaken() {
@@ -140,14 +141,21 @@ class Player {
     }
 
     inspect(target) {
-        let element = 0;
-
-        for (const property in items) {
-            //console.log('target: '+ target + ' items ' + items[element].name);
-            if (target === items[element].name) {
-                console.log(items[element].description);
+        for (const item of this.inventory) {
+            if (target === item.name) {
+                console.log(item.description);
             }
-            element += 1;
+        }
+    }
+
+    use(target) {
+        if (target.name === 'flashlight') {
+            target.useStatus = 'on';
+            console.log('Your flashlight is on!');
+        }
+        else {
+            target.useStatus = 'off';
+            console.log('You need to turn your flashlight on to see where you are going');
         }
     }
 
@@ -165,18 +173,31 @@ class Player {
     // Take item from room & add to inventory
     take(itemWanted) {
         let index = 0;
+        let  itemCannotBeTaken = true;
+
         for (const item of itemCollection.getItemCollection()) {
             index += 1;
-
+           
             // Only allow a player to take an item if it is in room they are in
             // and only allow player to take an item from a room once.
+
             if (item.name === itemWanted &&
                 this.currentRoom.roomNumber === item.roomNumber &&
-                item.itemStatus === 'in room') {
+                item.itemStatus === 'in room' &&
+                item.takeable === true) {
                 this.inventory.push(item);
                 item.markItemTaken();
                 console.log(itemWanted + ' added item to inventory');
+                itemCannotBeTaken = false;
+                break;
             }
+            else {
+                itemCannotBeTaken = true;
+            }
+        }
+   
+        if (itemCannotBeTaken) {
+            console.log('You cannot take ' + itemWanted);
         }
     }
 }
@@ -212,6 +233,7 @@ function showCommands() {
     console.log('    observe:     see a description of the room you are currently in.');
     console.log('    inventory:   see a list of the items that are currently in your possession.');
     console.log('    take:        pick an item in a room up.');
+    console.log('    inspect:     read or look close at an item that you have.');
     console.log('    use:         use an item that you have in your possession.');
     console.log('    help:        see this list of commands again.');
     console.log('    exit:        quit the game\n');
@@ -237,9 +259,9 @@ async function start() {
 
     //takeable items
     // room number, item name, item description, takeable boolean
-    itemCollection.addItem(new Item(1, 'note', 'some note', true));
+    itemCollection.addItem(new Item(1, 'note', 'Finding your way out a library can be challenging.  The key is to make sure everything is in its proper place.', true));
     itemCollection.addItem(new Item(1, 'flashlight', 'some flashlight', true));
-    itemCollection.addItem(new Item(1, 'book', 'some book', true));
+    itemCollection.addItem(new Item(1, 'book', 'a small book that could be placed on the bookcase', true));
     itemCollection.addItem(new Item(2, 'batteries', 'some batteries', true));
     itemCollection.addItem(new Item(2, 'key', 'some key', true));
     itemCollection.addItem(new Item(3, 'knife', 'some knife', true));
@@ -247,7 +269,7 @@ async function start() {
 
     // untakeable items
     itemCollection.addItem(new Item(1, 'desk', 'a mahagony desk with a note, flashlight and book on it', false));
-    itemCollection.addItem(new Item(1, 'bookcase', 'a towerinb bookcase', false));
+    itemCollection.addItem(new Item(1, 'bookcase', 'a towering bookcase', false));
     itemCollection.addItem(new Item(2, 'small desk', 'a small desk', false));
     itemCollection.addItem(new Item(2, 'portrait', 'a portrait of a beautful woman', false));
     itemCollection.addItem(new Item(3, 'drawer', 'cabinet drawer', false));
@@ -285,6 +307,9 @@ async function start() {
         }
         else if (action === 'inspect') {
             player.inspect(target);
+        }
+        else if (action === 'use') {
+            player.use(target);
         }
         else if (action === 'take') {
             player.take(target);
