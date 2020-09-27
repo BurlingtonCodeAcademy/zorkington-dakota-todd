@@ -66,7 +66,7 @@ class ItemCollection {
 }
 
 class Item {
-    constructor(roomNumber, name, desc, takeable, hasFiniteLife, affectsRoomLock, affectsPlayerHealth) {
+    constructor(roomNumber, name, desc, takeable, hasFiniteLife, affectsRoomLock, affectsPlayerHealth, life) {
         this.roomNumber = roomNumber;
         this.name = name;
         this.description = desc;
@@ -75,6 +75,7 @@ class Item {
         this.useStatus = false;
         this.affectsRoomLock = affectsRoomLock;
         this.affectsPlayerHealth = affectsPlayerHealth;
+        this.life = life;
     }
 }
 
@@ -143,23 +144,31 @@ class Player {
 
         let item = this.getInventoryItem(target);
 
+        if (item == null) {
+            console.log('You can\'t use the ' + target + ' because you don\'t have it');
+            return;
+        }
+
         // Unlock the room if the player uses certain items
-        if (item.affectsRoomLock) {
+        if (item != null &&
+            item.affectsRoomLock) {
             this.currentRoom.unlock();
             console.log('Congrats, you have unlocked the door to the ' + this.currentRoom.name);
             console.log('You can move to other rooms now!');
         }
 
         // If an item will wear out over time, start a countdown until it is dead
-        if (item.hasFiniteLife) {
+        if (item != null &&
+            item.hasFiniteLife) {
             item.useStatus = true;
             item.life -= 10;
+            console.log(item.description);
         }
     }
 
     // Display room description of the current room
     observe() {
-        console.log('\n'+this.currentRoom.description + '\n');
+        console.log('\n' + this.currentRoom.description + '\n');
     }
 
     // Show player's current inventory of items
@@ -192,7 +201,7 @@ class Player {
             item.roomNumber === this.currentRoom.roomNumber &&
             this.getInventoryItem(itemWanted) === null) {
             this.inventory.push(item);
-            console.log(item.name + ' added to your backpack');
+            console.log(item.name + ' added to your backpack\n');
             playerTookItem = true;
         }
         else {
@@ -214,6 +223,12 @@ class Player {
             console.log('You have a deep wound that is bleeding badly.  You need bandages quick!');
             this.inventory.pop();
         }
+        else if (item === 'bandages' &&
+            this.healthStatus < 100) {
+            console.log('You patch the  wound with the bandages and the bleeding stops.');
+            console.log('It\'s a good thing because otherwise you were a gonner!');
+            this.healthStatus = 100;
+        }
     }
 }
 
@@ -229,7 +244,7 @@ function ask(questionText) {
 function showIntro() {
     console.log('__________________________________________________________________________________')
     console.log('Last night was an epic night out with your friends exploring the Burlington scene.');
-    console.log('Unfortunately for you, in this case, epic got you into trouble!');
+    console.log('Unfortunately for you, epic got you into trouble!');
     console.log('You\'ve awoken in a dark, unfamiliar house with no memory of how you ended up there.');
     console.log('The house looks like it\'s been abandoned for quite some time.\n');
     console.log('You must navigate through the house to find your escape.');
@@ -241,16 +256,13 @@ function showIntro() {
 
 function showCommands() {
     console.log('You can use the following commands to help you find your way out:\n');
-    console.log('    move north:  walk north in a room.');
-    console.log('    move south:  walk south in a room.');
-    console.log('    move east:   walk east in a room.');
-    console.log('    move west:   walk west in a room.');
-    console.log('    observe:     see a description of the room you are currently in.');
-    console.log('    inventory:   see a list of the items that are currently in your possession.');
-    console.log('    take:        pick an item in a room up.');
-    console.log('    use:         use an item that you have in your possession.');
-    console.log('    help:        see this list of commands again.');
-    console.log('    exit:        quit the game\n');
+    console.log('    observe            to see a description of the room you are currently in.');
+    console.log('    inventory          to see a list of the items that are currently in your possession.');
+    console.log('    move <direction>   to walk north, south, east, west');
+    console.log('    take <item>        to pick an item in a room up.');
+    console.log('    use <item>         to use or read an item that you have in your possession.');
+    console.log('    help               to see this list of commands again.');
+    console.log('    exit               to quit the game\n');
 }
 
 async function start() {
@@ -261,29 +273,31 @@ async function start() {
     //Create house and rooms
     house = new House();
 
-    // room number, column, row, room name, room description, locked boolean 
+    // room number, column, row, room name, room description, roomLocked boolean 
     house.addRoom(new Room(1, 1, 1, 'library', 'You are in the library.\nThis room has bookcases from floor to ceiling, except one in particular that\'s only a little taller than you are. There\'s a single small desk in the center of the room.', true))
-    house.addRoom(new Room(2, 2, 1, 'kitchen', 'You are in the kitchen.\nThe kitchen looks to have been ransacked some time ago.\nMost of the drawers are hanging open with nothing inside.\nThe door to the dining room seems to be locked from the other side.', true))
-    house.addRoom(new Room(3, 2, 2, 'dining room', 'You are in the dining room.\nThere is a long wooden dinner table with several empty viles atop it.\nOne empty vial for every seat at the table ...exept one.', false))
-    house.addRoom(new Room(4, 2, 3, 'study', 'You are in the study.\nThere is a large oak desk in the room with faded portraits hanging on the wall,\none seems to be askew...', true))
-    house.addRoom(new Room(5, 1, 3, 'bathroom', 'You are in a large, luxurious bathroom.\nThere is a large ornate mirror above the sink.\n', false))
-    house.addRoom(new Room(6, 1, 4, 'master bedroom', 'You are in the master bedroom.\nThe windows on the far wall are large enought to climb through.\n But wait suddenly a large vicious dog appears to block your way.', false))
+    house.addRoom(new Room(2, 1, 2, 'Closet', 'You are in a storage closet.\nThe closet is full of cleaning supplies, some old rags, a case of beer, a box of cigarettes, a box of batteries and a few other things.', false))
+    house.addRoom(new Room(3, 2, 1, 'kitchen', 'You are in the kitchen.\nThe kitchen looks to have been ransacked some time ago.\nMost of the drawers are hanging open with nothing inside.\nThe door to the dining room seems to be locked from the other side.', true))
+    house.addRoom(new Room(4, 2, 2, 'dining room', 'You are in the dining room.\nThere is a long wooden dinner table with several empty viles atop it.\nOne empty vial for every seat at the table ...exept one.', false))
+    house.addRoom(new Room(5, 2, 3, 'study', 'You are in the study.\nThere is a large oak desk in the room with faded portraits hanging on the wall,\none seems to be askew...', true))
+    house.addRoom(new Room(6, 1, 3, 'bathroom', 'You are in a large, luxurious bathroom.\nThere is a large ornate mirror above the sink.\n', false))
+    house.addRoom(new Room(7, 1, 4, 'master bedroom', 'You are in the master bedroom.\nThe windows on the far wall are large enought to climb through.\n But wait suddenly a large vicious dog appears to block your way.', false))
 
     // Create items that exist in rooms in house
     itemCollection = new ItemCollection();
 
     //takeable items
-    // room number, item name, item description, takeable boolean, hasFiniteLife boolean, affectsRoomLock boolean, affectsHealthBoolean
+    // room number, item name, item description, takeable boolean, hasFiniteLife boolean, affectsRoomLock boolean, affectsHealthBoolean, life
     itemCollection.addItem(new Item(1, 'note', 'Finding your way out a library can be challenging.  The key is to make sure everything is in its proper place.', true, false, false, false));
-    itemCollection.addItem(new Item(1, 'flashlight', 'Your flashlight is on!\n You can now see a note on the table and a small book on the floor.', true, true, false, false));
+    itemCollection.addItem(new Item(1, 'flashlight', 'Your flashlight is on!\nYou can now see a note on the table and a small book on the floor.', true, true, false, false, 100));
     itemCollection.addItem(new Item(1, 'book', 'Reading the book was magical.  The lock on the door to the next room is now open', true, false, true, false));
-    itemCollection.addItem(new Item(2, 'screwdriver', 'congrats, you have unlocked the door to the dining room', true, false, true, false));
-    itemCollection.addItem(new Item(2, 'cookies', 'yummy cookies', true, false, false, true));
-    itemCollection.addItem(new Item(2, 'knife', 'a sharp ginsu knife', true, false, false, true));
-    itemCollection.addItem(new Item(3, 'vial', 'a vial full of a red liquid', true, false, false, true));
-    itemCollection.addItem(new Item(4, 'key', 'a silver key', true, true, false, false));
-    itemCollection.addItem(new Item(5, 'bandages', 'a box of gauss and bandages', true, false, false, true));
-    itemCollection.addItem(new Item(4, 'batteries', 'The batteries did the trick, your flashlight works again', true, false, false, false));
+    itemCollection.addItem(new Item(2, 'batteries', 'The batteries did the trick, your flashlight works again', true, false, false, false));
+    itemCollection.addItem(new Item(3, 'screwdriver', 'congrats, you have unlocked the door to the dining room', true, false, true, false));
+    itemCollection.addItem(new Item(3, 'cookies', 'yummy cookies', true, false, false, true));
+    itemCollection.addItem(new Item(3, 'knife', 'a sharp ginsu knife', true, false, false, true));
+    itemCollection.addItem(new Item(4, 'vial', 'a vial full of a red liquid', true, false, false, true));
+    itemCollection.addItem(new Item(5, 'key', 'a silver key', true, false, true, false));
+    itemCollection.addItem(new Item(6, 'bandages', 'a box of gauss and bandages', true, false, false, true));
+   
 
     // untakeable items
     itemCollection.addItem(new Item(1, 'desk', 'a mahagony desk with a note, flashlight and book on it', false, false, false, false));
@@ -299,28 +313,34 @@ async function start() {
 
     // Loop and accept commands from player
     while (true) {
+
+        //  get and parse user input into two distinct fieds (1)action (first word) and (2)target (remaining words)
         let answer = await ask(player.currentRoom.name.toUpperCase() + '>_');
-
         userAction = answer.toLowerCase().trim();
-
-        // parse user input into two distinct fieds (1)action (first word) and (2)target (remaining words)
         let inputArray = userAction.split(' ')
         let action = inputArray[0]
         let target = inputArray.splice(1).join(" ")
+        let flashlight = player.getInventoryItem('flashlight');
 
+        //  take action based on player's input
         if (action === 'exit') {
             console.log('Thanks for playing');
             process.exit();
         }
         else if (action === 'move') {
 
-            if (player.getInventoryItem('flashlight') === null ||
-                player.getInventoryItem('flashlight').useStatus === false) {
-                console.log('You trip and fall, ouch.  You should take the flashlight and turn it on');
+            if (flashlight === null ||
+                flashlight.useStatus === false) {
+                console.log('You trip and fall, ouch.  Why don\'t you take the flashlight and turn it on?');
+            }
+            else if (flashlight.life === 0) {
+                console.log('Your flashlight batteries have run out.  You trip and land on a glass table.');
+                console.log('The table shatters and unfortunately you won\'t be down for breakfast!');
+                process.exit();
             }
             else if (player.currentRoom.isLocked() === false) {
-                
-                // if player is wounded and they try to move, their health deteriorates more
+
+                // if player is wounded and they try to move, decrement their health further
                 if (player.healthStatus < 100) {
                     player.healthStatus = player.healthStatus - 20;
                 }
@@ -338,6 +358,17 @@ async function start() {
                 player.move(target)
                 player.observe();
 
+                if (flashlight != null &&
+                    flashlight.useStatus === true &&
+                    flashlight.life > 0) {
+                    flashlight.life = flashlight.life - 10;
+                }
+
+                if (flashlight != null &
+                    flashlight.life < 50) {
+                    console.log('Your flashlight batteries only have ' + flashlight.life + '% of life left');
+                    console.log('Start looking for batteries soon or you\'ll be in the dark');
+                }
             }
             else {
                 console.log('Sorry, you don\'t have the items you need to move from this room yet');
