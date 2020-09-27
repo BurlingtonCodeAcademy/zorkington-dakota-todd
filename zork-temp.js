@@ -26,12 +26,14 @@ class House {
 }
 
 class Room {
-    constructor(roomNumber, column, row, name, description, locked) {
+    constructor(roomNumber, column, row, name, description, takeableItemDesc, locked) {
         this.roomNumber = roomNumber;
         this.column = column;
         this.row = row;
         this.name = name;
         this.description = description;
+        this.takeableItemDescription = takeableItemDesc;
+        this.fullDescription = description + takeableItemDesc;
         this.locked = locked;
     }
 
@@ -63,6 +65,8 @@ class ItemCollection {
         const index = this.items.findIndex(item => item.name === itemWanted);
         return this.items[index];
     }
+
+
 }
 
 class Item {
@@ -85,7 +89,7 @@ class Player {
         this.name = name;
         this.inventory = [];
         this.healthLevel = 100;
-        this.appetite = 'full';
+        this.isBandaged = false;
         this.currentRoom = house.getEntryRoom();
         this.currentColumn = 1;
         this.currentRow = 1;
@@ -166,14 +170,34 @@ class Player {
             item.useStatus = true;
             item.life -= 10;
         }
+
+        // Don't remove flashlight from inventory, once player has it, they always will.
+        if (item.name != null &&
+            (item.name != 'flashlight' &&
+            item.name != 'batteries' &&
+            item.name != 'bandages')) {
+            this.removeInventoryItem(item);
+        }
+
+        // Apply health effects of item used
+        this.applyHealthEffects(item.name);
         console.log(item.description + '\n');
 
+    }
+
+    // remove an item from a player's inventory
+    removeInventoryItem(itemWanted) {
+        const index = this.inventory.indexOf(itemWanted);
+        
+        if (index > -1) {
+            this.inventory.splice(index, 1);
+        }
     }
 
     // Display room description of the current room
     observe() {
         console.log('---------------------------------------------------------------------------------');
-        console.log(this.currentRoom.description + '\n');
+        console.log(this.currentRoom.fullDescription + '\n');
     }
 
     // Show player's current inventory of items
@@ -205,6 +229,7 @@ class Player {
             this.getInventoryItem(itemWanted) === null) {
             this.inventory.push(item);
             console.log(item.name + ' added to your inventory\n');
+            this.currentRoom.fullDescription = this.currentRoom.description;
             playerTookItem = true;
         }
         else {
@@ -246,7 +271,8 @@ class Player {
     }
     // Apply any helpful or detrimental effects that an item may have on a player when they use it.
     applyHealthEffects(item) {
-        if (item === 'knife') {
+        if (item === 'knife' &&
+            this.isBandaged === false) {
             console.log('The knife was sharp!\nYou\'ve grabbed it from the wrong end and cut yourself!');
             console.log('In shock you\'ve dropped the bloody knife onto the floor!');
             console.log('You\'ll need to find some bandages quickly!');
@@ -257,6 +283,7 @@ class Player {
             console.log('You patch your knife wound with the bandages and the bleeding stops.');
             console.log('Not a moment too soon!\nYou would have surely perished otherwise!');
             this.healthLevel = 100;
+            this.isBandaged = true;
         }
     }
 
@@ -265,7 +292,7 @@ class Player {
         // if a player is wounded or ill, decrement their health further
         if (action === 'move' &&
             this.healthLevel < 100) {
-            this.healthLevel = this.healthLevel - 20;
+            this.healthLevel = this.healthLevel - 20;   
         }
     }
 
@@ -275,7 +302,8 @@ class Player {
             console.log('You couldn\'t escape in time!\nYou\'ve succumbed to your wounds and will lie in this house forever!');
         }
         else if (this.healthLevel > 0 &&
-            this.healthLevel < 100) {
+            this.healthLevel < 100 &&
+            this.isBandaged === false) {
             console.log('You\'re still bleeding and getting weaker by the second! You have  ' + this.healthLevel + '% of your health left!');
             console.log('Find a way to stop the bleeding before your time runs out!');
         }
@@ -300,7 +328,6 @@ class Player {
             flashlight != null &&
             flashlight.useStatus === true) {
             flashlight.life = 100;
-            console.log('Your flashlight power is back to ' + flashlight.life);
         }
     }
 
@@ -380,13 +407,13 @@ async function start() {
     house = new House();
 
     // room number, column, row, room name, room description, roomLocked boolean 
-    house.addRoom(new Room(1, 1, 1, 'Library', 'You are in the library.\nEvery wall in this room is lined from floor to ceiling with books, but one bookcase along the eastern wall appears much shorter than the rest.\n', true))
+    house.addRoom(new Room(1, 1, 1, 'Library', 'You are in the library.\nEvery wall in this room is lined from floor to ceiling with books, but one bookcase along the eastern wall appears much shorter than the rest.\n','', true))
     house.addRoom(new Room(2, 1, 2, 'Closet', 'You are in the bathroom closet.\nThe closet is full of useless cleaning supplies and stacks of towels.', 'Nestled amongst the cleaning supplies, you find a box of batteries!', false))
     house.addRoom(new Room(3, 2, 1, 'Kitchen', 'You are in the kitchen.\nThe room appears to have been completely ransacked some time ago. All of the cabinets and drawers are hanging open. The only way out appears to be a set of large doors on the southern side of the room.\nThe doors are locked from the other side.', 'You see a few glints of silver in the light of your flashlight. A knife lay in one of the drawers, while a screwdriver can be seen lying on the floor in the corner.', true))
-    house.addRoom(new Room(4, 2, 2, 'Dining room', 'You are in the dining room.\nA long wooden table sits in the center of the room. There are no place settings at the table except for one.\nSomeone must have been expecting company...\nYou see nothing helpful to grab in this room.\nThe way south out of the dining room opens to another room.', false))
+    house.addRoom(new Room(4, 2, 2, 'Dining room', 'You are in the dining room.\nA long wooden table sits in the center of the room. There are no place settings at the table except for one.\nSomeone must have been expecting company...\nYou see nothing helpful to grab in this room.\nThe way south out of the dining room opens to another room.', '', false))
     house.addRoom(new Room(5, 2, 3, 'Study', 'You are in the study.\nThere is a large oak desk in the room with several drawers. Mostly faded portraits can be seen on every wall except for the western side of the room.', 'One of the portraits is haning askew, sitting on the floor below it is a small brass key.', true))
     house.addRoom(new Room(6, 1, 3, 'Bathroom', 'You are in the bathroom.\nThere\'s a large, rusted tub in the northern half of the room with a closet door next to it. The door to the next room lies to the south.\nThe mirror above the sink has been shattered to reveal a hidden medicine cabinet.', 'You can just see some bandages laying inside.', false))
-    house.addRoom(new Room(7, 1, 4, 'Master Bedroom', 'You are in the master bedroom.\nThere is a very large four poster bed dominating most of the room. Several enormous windows line the far wall, big enough to climb out of!\nBut before you can make your way over to them, a humungous creature steps out of the darkness!\nThe largest, most vicious dog you\'ve ever seen is standing between you and the escape!', false))
+    house.addRoom(new Room(7, 1, 4, 'Master Bedroom', 'You are in the master bedroom.\nThere is a very large four poster bed dominating most of the room. Several enormous windows line the far wall, big enough to climb out of!\nBut before you can make your way over to them, a humungous creature steps out of the darkness!\nThe largest, most vicious dog you\'ve ever seen is standing between you and the escape!', '', false))
 
 
     // Create items that exist in rooms in house
@@ -403,7 +430,7 @@ async function start() {
     itemCollection.addItem(new Item(3, 'knife', '', true, false, false, true));
     //itemCollection.addItem(new Item(4, 'vial', 'a vial full of a red liquid', true, false, false, true));
     itemCollection.addItem(new Item(5, 'key', 'The key fits perfectly into the drawers in the desk!\nYou open each drawer to find them all empty....except for one. There\'s a small button hidden deep inside the drawer.\nYou press the button and a section of the western wall slides back to reveal a hidden entry into a bathroom!', true, false, true, false));
-    itemCollection.addItem(new Item(6, 'bandages', 'You use the bandages to wrap the cut on your hand.\nThe bleeding stops! You may just survive this house!', true, false, false, true));
+    itemCollection.addItem(new Item(6, 'bandages', 'You use the bandages to wrap the cut on your hand.\nThe bleeding stops! You may just survive this house!', true, false, false, false));
 
     // create untakeable items
     itemCollection.addItem(new Item(1, 'desk', '', false, false, false, false));
