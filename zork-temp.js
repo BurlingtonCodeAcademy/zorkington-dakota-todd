@@ -52,21 +52,16 @@ class ItemCollection {
         this.items = [];
     }
 
+    // Add an item into array to store defined items
     addItem(item) {
         this.items.push(item);
     }
 
-    getItemCollection() {
-        return this.items;
-    }
-
-    // get an item in a room
+    // find an item in a room and return it
     getItem(itemWanted) {
         const index = this.items.findIndex(item => item.name === itemWanted);
         return this.items[index];
     }
-
-
 }
 
 class Item {
@@ -99,6 +94,7 @@ class Player {
         return (this.healthlevel > 0 ? false : true);
     }
 
+    // Search for item in player inventory and return it
     getInventoryItem(name) {
         let returnItem = null;
         this.inventory.forEach((item) => {
@@ -135,7 +131,7 @@ class Player {
                 break;
         }
 
-        // Only allow player to move if there move keeps them in the house
+        // Only allow player to move if the move keeps them in the house
         if (house.getRoom(newColumn, newRow) === null) {
             console.log("you can\'t go in that directon");
             return false;
@@ -171,7 +167,7 @@ class Player {
             item.life -= 10;
         }
 
-        // Don't remove flashlight from inventory, once player has it, they always will.
+        // Don't remove flashlight from inventory, once player has it, they always keep these items.
         if (item.name != null &&
             (item.name != 'flashlight' &&
             item.name != 'batteries' &&
@@ -179,7 +175,7 @@ class Player {
             this.removeInventoryItem(item);
         }
 
-        // Apply health effects of item used
+        // Apply health effects when item is used
         this.applyHealthEffects(item.name);
         console.log(item.description + '\n');
 
@@ -244,11 +240,6 @@ class Player {
             this.healthLevel -= 10;
             this.applyHealthEffects(item.name);
         }
-
-        if (item != undefined &&
-            item.takeChgsDescription === true) {
-
-        }
     }
 
     // Validate whether player has the critical items they need and notify them based on status
@@ -269,6 +260,7 @@ class Player {
             return true;
         }
     }
+    
     // Apply any helpful or detrimental effects that an item may have on a player when they use it.
     applyHealthEffects(item) {
         if (item === 'knife' &&
