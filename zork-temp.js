@@ -91,8 +91,11 @@ class Player {
         this.currentRow = 1;
     }
 
-    getInventoryItem(name) {
+    isAlive() {
+        return (this.healthlevel > 0 ? false : true);
+    }
 
+    getInventoryItem(name) {
         let returnItem = null;
         this.inventory.forEach((item) => {
             if (item.name === name) {
@@ -155,8 +158,8 @@ class Player {
         if (item != null &&
             item.affectsRoomLock) {
             this.currentRoom.unlock();
-            console.log('Congrats, you have unlocked the door to the ' + this.currentRoom.name);
-            console.log('You can move to other rooms now!');
+            console.log('Congrats, you are no longer locked in the ' + this.currentRoom.name);
+            console.log('You can move to other rooms now!\n');
         }
 
         // If an item will wear out over time, start a countdown until it is dead
@@ -164,7 +167,7 @@ class Player {
             item.hasFiniteLife) {
             item.useStatus = true;
             item.life -= 10;
-            console.log(item.description);
+            console.log(item.description + '\n');
         }
     }
 
@@ -285,6 +288,7 @@ class Player {
         }
     }
 
+    // display the health of any finite life items
     displayItemHealth() {
         let flashlight = this.getInventoryItem('flashlight');
 
@@ -330,9 +334,24 @@ function showCommands() {
     console.log('    exit               to quit the game\n');
 }
 
+function isGameOver(player) {
+    // check for win condition
+    if (player.currentRoom.name === 'master bedroom' &&
+        player.getInventoryItem('knife') !== null) {
+        console.log('You win!');
+        process.exit();
+    }
+    else if (player.isAlive) {
+        return false;
+    }
+    else {
+        process.exit();
+    }
+}
+
 async function start() {
 
-    // Show the Intro Text
+    // Display Intro Text
     showIntro();
 
     //Create house and rooms
@@ -350,7 +369,7 @@ async function start() {
     // Create items that exist in rooms in house
     itemCollection = new ItemCollection();
 
-    //takeable items
+    // first create takeable items
     // room number, item name, item description, takeable boolean, hasFiniteLife boolean, affectsRoomLock boolean, affectsHealthBoolean, life
     itemCollection.addItem(new Item(1, 'note', 'Finding your way out a library can be challenging.  The key is to make sure everything is in its proper place.', true, false, false, false));
     itemCollection.addItem(new Item(1, 'flashlight', 'Your flashlight is on!\nYou can now see a note on the table and a small book on the floor.', true, true, false, false, 100));
@@ -363,8 +382,7 @@ async function start() {
     itemCollection.addItem(new Item(5, 'key', 'a silver key', true, false, true, false));
     itemCollection.addItem(new Item(6, 'bandages', 'a box of gauss and bandages', true, false, false, true));
 
-
-    // untakeable items
+    // create untakeable items
     itemCollection.addItem(new Item(1, 'desk', 'a mahagony desk with a note, flashlight and book on it', false, false, false, false));
     itemCollection.addItem(new Item(1, 'bookcase', 'a towering bookcase', false, false, false, false));
     itemCollection.addItem(new Item(2, 'small desk', 'a small desk', false, false, false, false));
@@ -377,7 +395,7 @@ async function start() {
     player.observe();
 
     // Loop and accept commands from player
-    while (true) {
+    while (!isGameOver(player)) {
 
         //  get and parse user input into two distinct fieds (1)action (first word) and (2)target (remaining words)
         let answer = await ask(player.currentRoom.name.toUpperCase() + '>_');
@@ -431,13 +449,6 @@ async function start() {
         }
         else {
             console.log('I don\'t understand that command.  Please try again.\n');
-        }
-
-        // check for win condition
-        if (player.currentRoom.name === 'master bedroom' &&
-            player.getInventoryItem('knife') !== null) {
-            console.log('You win!');
-            process.exit();
         }
     }
 }
