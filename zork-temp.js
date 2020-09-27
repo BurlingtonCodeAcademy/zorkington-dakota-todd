@@ -39,8 +39,8 @@ class Room {
         this.locked = false;
     }
 
-    isLocked() {
-        return this.locked;
+    isOpen() {
+        return !this.locked;
     }
 
 }
@@ -84,7 +84,7 @@ class Player {
     constructor(name) {
         this.name = name;
         this.inventory = [];
-        this.healthStatus = 100;
+        this.healthLevel = 100;
         this.appetite = 'full';
         this.currentRoom = house.getEntryRoom();
         this.currentColumn = 1;
@@ -131,11 +131,13 @@ class Player {
         // Only allow player to move if there move keeps them in the house
         if (house.getRoom(newColumn, newRow) === null) {
             console.log("you can\'t go in that directon");
+            return false;
         }
         else {
             this.currentColumn = newColumn;
             this.currentRow = newRow;
             this.currentRoom = house.getRoom(newColumn, newRow);
+            return true;
         }
     }
 
@@ -149,7 +151,7 @@ class Player {
             return;
         }
 
-        // Unlock the room if the player uses certain items
+        // Unlock the room if the player uses an item that is capable of doing this.
         if (item != null &&
             item.affectsRoomLock) {
             this.currentRoom.unlock();
@@ -168,14 +170,13 @@ class Player {
 
     // Display room description of the current room
     observe() {
-        console.log('\n' + this.currentRoom.description + '\n');
+        console.log('---------------------------------------------------------------------------------');
+        console.log(this.currentRoom.description + '\n');
     }
 
     // Show player's current inventory of items
     showInventory() {
-
         if (this.inventory.length > 0) {
-            console.log('\n');
             console.log('--------------------');
             for (const item of this.inventory) {
                 console.log(item.name)
@@ -208,28 +209,92 @@ class Player {
             console.log('Item cannot be taken');
         }
 
-        // If item will affect players health, decrement the health status
+        // If item and was able to be takan and will affect a players health in some way
+        // update the player's health accordingly.
         if (item != undefined &&
             item.affectsPlayerHealth &&
             playerTookItem) {
-            this.healthStatus -= 10;
+            this.healthLevel -= 10;
             this.applyHealthEffects(item.name);
         }
     }
 
+    // Validate whether player has the critical items they need and notify them based on status
+    hasItemsNeeded(inventory) {
+        let flashlight = this.getInventoryItem('flashlight');
+
+        if (flashlight === null ||
+            flashlight.useStatus === false) {
+            console.log('You trip and fall, ouch.  Why don\'t you take the flashlight and turn it on?');
+            return false;
+        }
+        else if (flashlight.life === 0) {
+            console.log('Your flashlight batteries have run out.  You trip and land on a glass table.');
+            console.log('The table shatters and unfortunately you won\'t be down for breakfast!');
+            process.exit();
+        }
+        else {
+            return true;
+        }
+    }
+    // Apply any helpful or detrimental effects that an item may have on a player when they use it.
     applyHealthEffects(item) {
         if (item === 'knife') {
-            console.log('The knife blade was pointed up and you accidently stabbed your hand.  The knife falls to the floor.');
-            console.log('You have a deep wound that is bleeding badly.  You need bandages quick!');
+            console.log('The knife blade was pointed up and you accidently stabbed your hand.');
+            console.log('You\'re bleeding pretty badly and drop the knife and use your other hand to slow the bleeding.');
+            console.log('You need to find some bandages quickly!');
             this.inventory.pop();
         }
         else if (item === 'bandages' &&
-            this.healthStatus < 100) {
+            this.healthLevel < 100) {
             console.log('You patch the  wound with the bandages and the bleeding stops.');
             console.log('It\'s a good thing because otherwise you were a gonner!');
-            this.healthStatus = 100;
+            this.healthLevel = 100;
         }
     }
+
+    // Assess and adjust players health and update it based on the action they are taking
+    updatePlayerHealth(action) {
+        // if a player is wounded or ill, decrement their health further
+        if (action === 'move' &&
+            this.healthLevel < 100) {
+            this.healthLevel = this.healthLevel - 20;
+        }
+    }
+
+    // Display player's health status 
+    displayPlayerHealth() {
+        if (this.healthLevel <= 0) {
+            console.log('Sorry, unfortunately you have met your demise and died!');
+        }
+        else if (this.healthLevel > 0 &&
+            this.healthLevel < 100) {
+            console.log('Your still bleeding and getting weaker.  You have  ' + this.healthLevel + '% of your energy left!');
+            console.log('Find a way to patch that wound or your a goner!');
+        }
+    }
+
+    // Update the life of any useable items that have a finite life
+    updateItemHealth() {
+        let flashlight = this.getInventoryItem('flashlight');
+
+        if (flashlight != null &&
+            flashlight.useStatus === true &&
+            flashlight.life > 0) {
+            flashlight.life = flashlight.life - 10;
+        }
+    }
+
+    displayItemHealth() {
+        let flashlight = this.getInventoryItem('flashlight');
+
+        if (flashlight != null &
+            flashlight.life < 50) {
+            console.log('Your flashlight batteries only have ' + flashlight.life + '% of life left');
+            console.log('Start looking for batteries soon or you\'ll be in the dark');
+        }
+    }
+
 }
 
 const readline = require('readline');
@@ -297,7 +362,7 @@ async function start() {
     itemCollection.addItem(new Item(4, 'vial', 'a vial full of a red liquid', true, false, false, true));
     itemCollection.addItem(new Item(5, 'key', 'a silver key', true, false, true, false));
     itemCollection.addItem(new Item(6, 'bandages', 'a box of gauss and bandages', true, false, false, true));
-   
+
 
     // untakeable items
     itemCollection.addItem(new Item(1, 'desk', 'a mahagony desk with a note, flashlight and book on it', false, false, false, false));
@@ -317,57 +382,32 @@ async function start() {
         //  get and parse user input into two distinct fieds (1)action (first word) and (2)target (remaining words)
         let answer = await ask(player.currentRoom.name.toUpperCase() + '>_');
         userAction = answer.toLowerCase().trim();
-        let inputArray = userAction.split(' ')
-        let action = inputArray[0]
-        let target = inputArray.splice(1).join(" ")
-        let flashlight = player.getInventoryItem('flashlight');
+        let inputArray = userAction.split(' ');
+        let action = inputArray[0];
+        let target = inputArray.splice(1).join(" ");
+
 
         //  take action based on player's input
         if (action === 'exit') {
-            console.log('Thanks for playing');
+            console.log('Thanks for playing!  Sorry you had to quit before solving the game!');
             process.exit();
         }
         else if (action === 'move') {
 
-            if (flashlight === null ||
-                flashlight.useStatus === false) {
-                console.log('You trip and fall, ouch.  Why don\'t you take the flashlight and turn it on?');
-            }
-            else if (flashlight.life === 0) {
-                console.log('Your flashlight batteries have run out.  You trip and land on a glass table.');
-                console.log('The table shatters and unfortunately you won\'t be down for breakfast!');
-                process.exit();
-            }
-            else if (player.currentRoom.isLocked() === false) {
+            if (player.hasItemsNeeded() &&
+                player.currentRoom.isOpen()) {
 
-                // if player is wounded and they try to move, decrement their health further
-                if (player.healthStatus < 100) {
-                    player.healthStatus = player.healthStatus - 20;
-                }
+                // try to move
+                let playerAbleToMove = player.move(target);
 
-                if (player.healthStatus <= 0) {
-                    console.log('Sorry, unfortunately you have met your demise and died!');
-                    process.exit();
-                }
-                else if (player.healthStatus > 0 &&
-                    player.healthStatus < 100) {
-                    console.log('Your still bleeding and getting weaker.  You have  ' + player.healthStatus + '% of your energy left!');
-                    console.log('Find a way to patch that wound or your a goner!');
-                }
-
-                player.move(target)
-                player.observe();
-
-                if (flashlight != null &&
-                    flashlight.useStatus === true &&
-                    flashlight.life > 0) {
-                    flashlight.life = flashlight.life - 10;
-                }
-
-                if (flashlight != null &
-                    flashlight.life < 50) {
-                    console.log('Your flashlight batteries only have ' + flashlight.life + '% of life left');
-                    console.log('Start looking for batteries soon or you\'ll be in the dark');
+                // if able to move, display description of new room 
+                // and update/display player and item health
+                if (playerAbleToMove) {
+                    player.observe();
+                    player.updatePlayerHealth(action);
+                    player.displayPlayerHealth();
+                    player.updateItemHealth();
+                    player.displayItemHealth();
                 }
             }
             else {
