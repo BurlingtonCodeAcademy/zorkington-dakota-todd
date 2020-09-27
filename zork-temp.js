@@ -363,13 +363,13 @@ async function start() {
     house = new House();
 
     // room number, column, row, room name, room description, roomLocked boolean 
-    house.addRoom(new Room(1, 1, 1, 'Library', 'You are in the library.\nThis room has bookcases from floor to ceiling, except one in particular that\'s only a little taller than you are. There\'s a single small desk in the center of the room.', true))
+    house.addRoom(new Room(1, 1, 1, 'Library', 'You are in the library.\nEvery wall in this room is lined from floor to cieling with books, but one bookcase along the eastern wall appears much shorter than the rest.\n', true))
     house.addRoom(new Room(2, 1, 2, 'Closet', 'You are in a storage closet.\nThe closet is full of cleaning supplies, some old rags, a case of beer, a box of cigarettes, a box of batteries and a few other things.', false))
-    house.addRoom(new Room(3, 2, 1, 'Kitchen', 'You are in the kitchen.\nThe kitchen looks to have been ransacked some time ago.\nMost of the drawers are hanging open with nothing inside.\nThe door to the dining room seems to be locked from the other side.', true))
-    house.addRoom(new Room(4, 2, 2, 'Dining room', 'You are in the dining room.\nThere is a long wooden dinner table with several empty viles atop it.\nOne empty vial for every seat at the table ...exept one.', false))
-    house.addRoom(new Room(5, 2, 3, 'Study', 'You are in the study.\nThere is a large oak desk in the room with faded portraits hanging on the wall,\none seems to be askew...', true))
-    house.addRoom(new Room(6, 1, 3, 'Bathroom', 'You are in a large, luxurious bathroom.\nThere is a large ornate mirror above the sink.\n', false))
-    house.addRoom(new Room(7, 1, 4, 'Master Bedroom', 'You are in the master bedroom.\nThe windows on the far wall are large enought to climb through.\n But wait suddenly a large vicious dog appears to block your way.', false))
+    house.addRoom(new Room(3, 2, 1, 'Kitchen', 'You are in the kitchen.\nThe room appears to have been completely ransacked some time ago. All of the cabinets and drawers are hanging open.\nYou see a few glints of silver in the light of your flashlight. A knife lay in one of the drawers, while a screwdriver can be seen lying on the floor in the corner.\nThe only way out appears to be a set of large doors on the southern side of the room.\nThe doors are locked from the other side.', true))
+    house.addRoom(new Room(4, 2, 2, 'Dining room', 'You are in the dining room.\nA long wooden table sits in the center of the room. There are no place settings at the table except for one.\nSomeone must have been expecting company...\nYou see nothing helpful to grab in this room.\nThe way south out of the dining room opens to another room.', false))
+    house.addRoom(new Room(5, 2, 3, 'Study', 'You are in the study.\nThere is a large oak desk in the room with several drawers. Mostly faded portraits can be seen on every wall except for the western side of the room.\nOne of the portraits is haning askew, sitting on the floor below it is a small brass key.', true))
+    house.addRoom(new Room(6, 1, 3, 'Bathroom', 'You are in the bathroom.\nThere\'s a large, rusted tub in the northern half of the room with a closet door next to it.\nThe mirror above the sink has been shattered to reveal a hidden medicine cabinet. You can just see some bandages laying inside.', false))
+    house.addRoom(new Room(7, 1, 4, 'Master Bedroom', 'You are in the master bedroom.\nThere is a very large four poster bed dominating most of the room. Several enormous windows line the far wall, big enough to climb out of!\nBut before you can make your way over to them, a humungous creature steps out of the darkness!\nThe largest, movst vicious dog you\'ve ever seen is standing between you and the escape!', false))
 
     // Create items that exist in rooms in house
     itemCollection = new ItemCollection();
@@ -377,23 +377,23 @@ async function start() {
     // first create takeable items
     // room number, item name, item description, takeable boolean, hasFiniteLife boolean, affectsRoomLock boolean, affectsHealthBoolean, life
     itemCollection.addItem(new Item(1, 'note', 'Welcome you to my home stranger.\nLet\'s see if you can find your way out!,', true, false, false, false));
-    itemCollection.addItem(new Item(1, 'flashlight', 'Your flashlight is on!\nYou can now see a note on the table and a book that\'s fallen on the floor.', true, true, false, false, 100));
-    itemCollection.addItem(new Item(1, 'book', 'Reading the book was magical.  The lock on the door to the next room is now open', true, false, true, false));
-    itemCollection.addItem(new Item(2, 'batteries', 'The batteries did the trick, your flashlight works again', true, false, false, false));
-    itemCollection.addItem(new Item(3, 'screwdriver', 'congrats, you have unlocked the door to the dining room', true, false, true, false));
-    itemCollection.addItem(new Item(3, 'cookies', 'yummy cookies', true, false, false, true));
-    itemCollection.addItem(new Item(3, 'knife', 'a sharp ginsu knife', true, false, false, true));
-    itemCollection.addItem(new Item(4, 'vial', 'a vial full of a red liquid', true, false, false, true));
-    itemCollection.addItem(new Item(5, 'key', 'a silver key', true, false, true, false));
-    itemCollection.addItem(new Item(6, 'bandages', 'a box of gauss and bandages', true, false, false, true));
+    itemCollection.addItem(new Item(1, 'flashlight', 'Your flashlight is on!\nYou can now see a small table next to a comfortable looking chair meant for reading.\nOn the table is a book with a faded "X" on the spine, underneath it looks to be a handwritten note.', true, true, false, false, 100));
+    itemCollection.addItem(new Item(1, 'book', 'You slide the book onto the shelf in the empty space between the "W" & "Y" encyclopedia books.\nYou hear the click of a lock being undone. The bookcase creaks open!\nYou are now able to move East to the next room!', true, false, true, false));
+    itemCollection.addItem(new Item(2, 'batteries', 'You put the fresh batteries in your flashlight.\nYour flashlight is at full power!', true, false, false, false));
+    itemCollection.addItem(new Item(3, 'screwdriver', 'You slide the narrow end of the screwdriver between the dining room doors and slide it up.\nThe latch on the other side lifts!\nYou\'ve unlocked the door to the dining room!', true, false, true, false));
+    //itemCollection.addItem(new Item(3, 'cookies', 'yummy cookies', true, false, false, true));
+    itemCollection.addItem(new Item(3, 'knife', '', true, false, false, true));
+    //itemCollection.addItem(new Item(4, 'vial', 'a vial full of a red liquid', true, false, false, true));
+    itemCollection.addItem(new Item(5, 'key', 'The key fits perfectly into the drawers in the desk!\nYou open each drawer to find them all empty....except for one. There\'s a small button hidden deep inside the drawer.\nYou press the button and a section of the western wall slides back to reveal a hidden entry into a bathroom!', true, false, true, false));
+    itemCollection.addItem(new Item(6, 'bandages', 'You use the bandages to wrap the cut on your hand.\nThe bleeding stops! You may just survive this house!', true, false, false, true));
 
     // create untakeable items
-    itemCollection.addItem(new Item(1, 'desk', 'A small desk next to a chair meant for reading. There\'s a book atop it with what looks to be a hand written note underneath.', false, false, false, false));
-    itemCollection.addItem(new Item(1, 'bookcase', 'A rather small bookcase filled with books. It looks like a book is missing from the Encyclopedia section.', false, false, false, false));
-    itemCollection.addItem(new Item(2, 'lage desk', 'A large mahogany desk with several drawers.', false, false, false, false));
-    itemCollection.addItem(new Item(2, 'portrait', 'An oil painting of a beautiful woman. It looks crooked.', false, false, false, false));
-    itemCollection.addItem(new Item(3, 'drawer', 'cabinet drawer', false, false, false, false));
-    itemCollection.addItem(new Item(4, 'table', 'an oval dining table', false, false, false, false));
+    itemCollection.addItem(new Item(1, 'desk', '', false, false, false, false));
+    itemCollection.addItem(new Item(1, 'bookcase', '', false, false, false, false));
+    itemCollection.addItem(new Item(5, 'lage desk', '', false, false, false, false));
+    itemCollection.addItem(new Item(5, 'portrait', '', false, false, false, false));
+    itemCollection.addItem(new Item(3, 'drawer', '', false, false, false, false));
+    itemCollection.addItem(new Item(4, 'table', '', false, false, false, false));
 
     // Create player and display initial room description
     let player = new Player();
