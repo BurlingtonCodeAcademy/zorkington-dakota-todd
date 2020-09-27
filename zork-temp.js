@@ -413,7 +413,7 @@ async function start() {
 
     let validCommands = {
         take: ['get', 'grab', 'pickup'],
-        use: ['push', 'apply', 'put in'],
+        use: ['push', 'apply', 'put'],
         exit: ['quit', 'bye']
     }
 
