@@ -367,6 +367,7 @@ function showIntro() {
 }
 
 function showCommands() {
+    console.log('---------------------------------')
     console.log('USE THE FOLLOWING COMMANDS:\n');
     console.log('    observe            to see a description of the room you are currently in.');
     console.log('    inventory          to see a list of the items that are currently in your possession.');
@@ -402,8 +403,8 @@ async function start() {
     house = new House();
 
     // room number, column, row, room name, room description, roomLocked boolean 
-    house.addRoom(new Room(1, 1, 1, 'Library', 'You are in the library.\nEvery wall in this room is lined from floor to cieling with books, but one bookcase along the eastern wall appears much shorter than the rest.\n', true))
-    house.addRoom(new Room(2, 1, 2, 'Closet', 'You are in a storage closet.\nThe closet is full of cleaning supplies, some old rags, a case of beer, a box of cigarettes, a box of batteries and a few other things.', false))
+    house.addRoom(new Room(1, 1, 1, 'Library', 'You are in the library.\nEvery wall in this room is lined from floor to ceiling with books, but one bookcase along the eastern wall appears much shorter than the rest.\n', true))
+    house.addRoom(new Room(2, 1, 2, 'Closet', 'You are in the bathroom closet.\nThe closet is full of useless cleaning supplies and stacks of towels.\nNestled amongst the cleaning supplies, you find a box of batteries!', false))
     house.addRoom(new Room(3, 2, 1, 'Kitchen', 'You are in the kitchen.\nThe room appears to have been completely ransacked some time ago. All of the cabinets and drawers are hanging open.\nYou see a few glints of silver in the light of your flashlight. A knife lay in one of the drawers, while a screwdriver can be seen lying on the floor in the corner.\nThe only way out appears to be a set of large doors on the southern side of the room.\nThe doors are locked from the other side.', true))
     house.addRoom(new Room(4, 2, 2, 'Dining room', 'You are in the dining room.\nA long wooden table sits in the center of the room. There are no place settings at the table except for one.\nSomeone must have been expecting company...\nYou see nothing helpful to grab in this room.\nThe way south out of the dining room opens to another room.', false))
     house.addRoom(new Room(5, 2, 3, 'Study', 'You are in the study.\nThere is a large oak desk in the room with several drawers. Mostly faded portraits can be seen on every wall except for the western side of the room.\nOne of the portraits is haning askew, sitting on the floor below it is a small brass key.', true))
