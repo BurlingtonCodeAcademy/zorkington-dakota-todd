@@ -149,7 +149,7 @@ class Player {
 
         let item = this.getInventoryItem(target);
 
-        if (item == null) {
+        if (item === null) {
             console.log('You can\'t use the ' + target + ' because you don\'t have it');
             return;
         }
@@ -158,8 +158,6 @@ class Player {
         if (item != null &&
             item.affectsRoomLock) {
             this.currentRoom.unlock();
-            console.log('Congrats! you are no longer locked in the ' + this.currentRoom.name + '!');
-            console.log('You can move to the next room now!\n');
         }
 
         // If an item will wear out over time, start a countdown until it is dead
@@ -167,8 +165,9 @@ class Player {
             item.hasFiniteLife) {
             item.useStatus = true;
             item.life -= 10;
-            console.log(item.description + '\n');
         }
+        console.log(item.description + '\n');
+
     }
 
     // Display room description of the current room
@@ -219,6 +218,11 @@ class Player {
             playerTookItem) {
             this.healthLevel -= 10;
             this.applyHealthEffects(item.name);
+        }
+
+        if (item != undefined &&
+            item.takeChgsDescription === true) {
+
         }
     }
 
@@ -313,6 +317,29 @@ class Player {
 
 }
 
+function cutString(itemName) {
+    let startSearch = '<' + itemName + '>';
+    let endSearch = '</' + itemName + '>';
+
+    let startIndex = string.indexOf(startSearch);
+    let endIndex = string.indexOf(endSearch);
+    let tagLength = itemName.length + 3;
+    let newString = null;
+
+    if (startIndex === 0) {
+        newString = string.substr(endIndex + tagLength, string.length);
+    }
+    else if (startIndex > 0 && startIndex < string.length) {
+        newString = string.substr(0, startIndex) + string.substr(endIndex + tagLength, string.length);
+    }
+    else {
+        newString = string.substr(endIndex, string.length);
+    }
+
+    return newString;
+}
+
+
 const readline = require('readline');
 const readlineInterface = readline.createInterface(process.stdin, process.stdout);
 
@@ -383,6 +410,7 @@ async function start() {
     house.addRoom(new Room(6, 1, 3, 'Bathroom', 'You are in the bathroom.\nThere\'s a large, rusted tub in the northern half of the room with a closet door next to it. The door to the next room lies to the south.\nThe mirror above the sink has been shattered to reveal a hidden medicine cabinet. You can just see some bandages laying inside.', false))
     house.addRoom(new Room(7, 1, 4, 'Master Bedroom', 'You are in the master bedroom.\nThere is a very large four poster bed dominating most of the room. Several enormous windows line the far wall, big enough to climb out of!\nBut before you can make your way over to them, a humungous creature steps out of the darkness!\nThe largest, movst vicious dog you\'ve ever seen is standing between you and the escape!', false))
 
+    
     // Create items that exist in rooms in house
     itemCollection = new ItemCollection();
 
