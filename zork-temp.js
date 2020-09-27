@@ -212,7 +212,7 @@ class Player {
             console.log('Item cannot be taken');
         }
 
-        // If item and was able to be takan and will affect a players health in some way
+        // If item and was able to be taken and will affect a players health in some way
         // update the player's health accordingly.
         if (item != undefined &&
             item.affectsPlayerHealth &&
@@ -280,11 +280,23 @@ class Player {
     // Update the life of any useable items that have a finite life
     updateItemHealth() {
         let flashlight = this.getInventoryItem('flashlight');
+        let batteries = this.getInventoryItem('batteries');
 
+        // Reduce the flashlight life if player doesn't have batteries
         if (flashlight != null &&
+            batteries === null &&
             flashlight.useStatus === true &&
             flashlight.life > 0) {
             flashlight.life = flashlight.life - 10;
+            flashlight.timerRunning = true;
+        }
+
+        // Restore the flashlight if the player has batteries
+        if (batteries != null &&
+            flashlight != null &&
+            flashlight.useStatus === true) {
+            flashlight.life = 100;
+            console.log('Your flashlight power is back to ' + flashlight.life);
         }
     }
 
@@ -292,7 +304,7 @@ class Player {
     displayItemHealth() {
         let flashlight = this.getInventoryItem('flashlight');
 
-        if (flashlight != null &
+        if (flashlight != null &&
             flashlight.life < 50) {
             console.log('Your flashlight batteries are low! ' + flashlight.life + '% power left!');
             console.log('Start looking for batteries soon or you\'ll find no escape!');
@@ -399,6 +411,12 @@ async function start() {
     let player = new Player();
     player.observe();
 
+    let validCommands = {
+        take: ['get', 'grab', 'pickup'],
+        use: ['push', 'apply', 'put in'],
+        exit: ['quit', 'bye']
+    }
+
     // Loop and accept commands from player
     while (!isGameOver(player)) {
 
@@ -408,7 +426,6 @@ async function start() {
         let inputArray = userAction.split(' ');
         let action = inputArray[0];
         let target = inputArray.splice(1).join(" ");
-
 
         //  take action based on player's input
         if (action === 'exit') {
@@ -420,14 +437,13 @@ async function start() {
             if (player.hasItemsNeeded() &&
                 player.currentRoom.isOpen()) {
 
-                // try to move
-                let playerAbleToMove = player.move(target);
+                // move and update Player health
+                player.move(target);
+                player.updatePlayerHealth(action);
 
-                // if able to move, display description of new room 
-                // and update/display player and item health
-                if (playerAbleToMove) {
+                // if able to move, display room description, player/item health
+                if (player.isAlive()) {
                     player.observe();
-                    player.updatePlayerHealth(action);
                     player.displayPlayerHealth();
                     player.updateItemHealth();
                     player.displayItemHealth();
