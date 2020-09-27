@@ -1,4 +1,3 @@
-//  A test comment!
 class House {
     constructor() {
         this.roomCollection = [];
@@ -58,22 +57,24 @@ class ItemCollection {
     getItemCollection() {
         return this.items;
     }
+
+    // get an item in a room
+    getItem(itemWanted) {
+        const index = this.items.findIndex(item => item.name === itemWanted);
+        return this.items[index];
+    }
 }
 
 class Item {
-    constructor(roomNumber, name, desc, takeable, affectsRoomLock, affectsPlayerHealth) {
+    constructor(roomNumber, name, desc, takeable, hasFiniteLife, affectsRoomLock, affectsPlayerHealth) {
         this.roomNumber = roomNumber;
         this.name = name;
         this.description = desc;
         this.takeable = takeable;
-        this.itemStatus = 'in room'
+        this.hasFiniteLife = hasFiniteLife;
         this.useStatus = false;
         this.affectsRoomLock = affectsRoomLock;
         this.affectsPlayerHealth = affectsPlayerHealth;
-    }
-
-    markItemTaken() {
-        this.itemStatus = 'taken';
     }
 }
 
@@ -100,24 +101,9 @@ class Player {
         return returnItem;
     }
 
-    // CAN DELETE get number of takeable items that a player has in their inventory from a particlar room
-    countRoomItems(roomNumber) {
-        let roomItemCount = 0;
-
-        for (const item of this.inventory) {
-            if (item.roomNumber === roomNumber) {
-                roomItemCount += 1;
-
-            }
-        }
-        return roomItemCount;
-    }
-
-    hasRequiredItems() {
-        return true;
-    }
-
     // Move from room to room
+    // Rooms are positioned in a matrix like fashion.
+    // Row and Column identify each rooms location relative to other rooms
     move(direction) {
 
         let newColumn = this.currentColumn;
@@ -141,6 +127,7 @@ class Player {
                 break;
         }
 
+        // Only allow player to move if there move keeps them in the house
         if (house.getRoom(newColumn, newRow) === null) {
             console.log("you can\'t go in that directon");
         }
@@ -151,97 +138,85 @@ class Player {
         }
     }
 
-    inspect(target) {
-        for (const item of this.inventory) {
-            if (target === item.name) {
-                console.log(item.description);
-            }
-        }
-    }
-
+    // Use an item that a player has in their inventory
     use(target) {
 
         let item = this.getInventoryItem(target);
-        console.log(item.description);
-        item.useStatus = true;
 
+        // Unlock the room if the player uses certain items
         if (item.affectsRoomLock) {
             this.currentRoom.unlock();
             console.log('Congrats, you have unlocked the door to the ' + this.currentRoom.name);
+            console.log('You can move to other rooms now!');
         }
 
-        if (item.name === 'batteries') {
-            flashlight = this.getInventoryItem('flashlight');
-            flashlight.useStatus = true;
+        // If an item will wear out over time, start a countdown until it is dead
+        if (item.hasFiniteLife) {
+            item.useStatus = true;
+            item.life -= 10;
         }
     }
 
-    // Display room description
+    // Display room description of the current room
     observe() {
-        console.log(this.currentRoom.description + '\n');
+        console.log('\n'+this.currentRoom.description + '\n');
     }
 
-    // Show current inventory items
+    // Show player's current inventory of items
     showInventory() {
-        console.log('\n');
-        console.log('--------------------');
-        for (const item of this.inventory) {
-            console.log(item.name)
+
+        if (this.inventory.length > 0) {
+            console.log('\n');
+            console.log('--------------------');
+            for (const item of this.inventory) {
+                console.log(item.name)
+            }
+            console.log('--------------------')
         }
-        console.log('--------------------')
+        else {
+            console.log('Your backpack is empty!');
+        }
     }
 
-    // Take item from room & add to inventory
+    // Take item from a room & add to a players inventory
     take(itemWanted) {
-        let index = 0;
-        let itemCannotBeTaken = true;
 
-        for (const item of itemCollection.getItemCollection()) {
-            index += 1;
+        let item = itemCollection.getItem(itemWanted);
 
-            // Only allow a player to take an item if it is in room they are in
-            // and only allow player to take an item from a room once.
+        let playerTookItem = false;
 
-           /* console.log('item.name: '+ item.name);
-            console.log('itemWanted: ' + itemWanted);
-            console.log('this.currentRoom.roomNumber: ' + item.roomNumber);
-            console.log('itemWanted: ' + itemWanted);
-            console.log('itemStatus: ' + item.itemStatus);
-            console.log('itemTakeable: ' + item.takeable + '\n');
-            console.log('---------------------------') */
-
-            if (item.name === itemWanted &&
-                this.currentRoom.roomNumber === item.roomNumber &&
-                this.getInventoryItem(itemWanted) === null &&
-                item.takeable === true) {
-                this.inventory.push(item);
-                item.markItemTaken(); // marks as taken
-                itemWanted = item;
-                console.log(itemWanted.name + ' added item to inventory');
-                itemCannotBeTaken = false;
-                break;
-            }
-            else {
-                itemCannotBeTaken = true;
-            }
+        // If item is takeable and is in the room that the player is in
+        // and player doesn't already have item, add it to their inventory
+        if (item != undefined &&
+            item.takeable &&
+            item.roomNumber === this.currentRoom.roomNumber &&
+            this.getInventoryItem(itemWanted) === null) {
+            this.inventory.push(item);
+            console.log(item.name + ' added to your backpack');
+            playerTookItem = true;
+        }
+        else {
+            console.log('Item cannot be taken');
         }
 
-        if (itemCannotBeTaken) {
-            console.log('You cannot take ' + itemWanted);
-        }
-        else if (itemWanted.name === 'knife' &&
-        knifeDropped === false) {
+        // If item will affect players health, decrement the health status
+        if (item != undefined &&
+            item.affectsPlayerHealth &&
+            playerTookItem) {
             this.healthStatus -= 10;
-            console.log('The knife blade was pointed up and you stabbed your hand.  The knife falls from your hand.');
-            console.log('You have a deep wound and better find bandages quick!');
+            this.applyHealthEffects(item.name);
+        }
+    }
+
+    applyHealthEffects(item) {
+        if (item === 'knife') {
+            console.log('The knife blade was pointed up and you accidently stabbed your hand.  The knife falls to the floor.');
+            console.log('You have a deep wound that is bleeding badly.  You need bandages quick!');
             this.inventory.pop();
-            itemWanted.status = 'in room';
-            knifeDropped = true;
         }
     }
 }
 
-let knifeDropped = false;
 const readline = require('readline');
 const readlineInterface = readline.createInterface(process.stdin, process.stdout);
 
@@ -284,7 +259,6 @@ async function start() {
     showIntro();
 
     //Create house and rooms
-
     house = new House();
 
     // room number, column, row, room name, room description, locked boolean 
@@ -295,36 +269,37 @@ async function start() {
     house.addRoom(new Room(5, 1, 3, 'bathroom', 'You are in a large, luxurious bathroom.\nThere is a large ornate mirror above the sink.\n', false))
     house.addRoom(new Room(6, 1, 4, 'master bedroom', 'You are in the master bedroom.\nThe windows on the far wall are large enought to climb through.\n But wait suddenly a large vicious dog appears to block your way.', false))
 
-
     // Create items that exist in rooms in house
     itemCollection = new ItemCollection();
 
     //takeable items
-    // room number, item name, item description, takeable boolean, affectsRoomLock boolean, affectsHealthBoolean
-    itemCollection.addItem(new Item(1, 'note', 'Finding your way out a library can be challenging.  The key is to make sure everything is in its proper place.', true, false, false));
-    itemCollection.addItem(new Item(1, 'flashlight', 'Your flashlight is on!\n You can now see a note on the table and a small book on the floor.', true, false, false));
-    itemCollection.addItem(new Item(1, 'book', 'Reading the book was magical.  The lock on the door to the next room is now open', true, true, false));
-    itemCollection.addItem(new Item(2, 'screwdriver', 'congrats, you have unlocked the door to the dining room', true, true, false));
-    itemCollection.addItem(new Item(2, 'cookies', 'yummy cookies', true, false, true));
-    itemCollection.addItem(new Item(2, 'knife', 'a sharp ginsu knife', true, false, true));
-    itemCollection.addItem(new Item(3, 'vial', 'a vial full of a red liquid', true, false, true));
-    itemCollection.addItem(new Item(4, 'key', 'a silver key', true, true, false));
-    itemCollection.addItem(new Item(5, 'bandages', 'a box of gauss and bandages', true, false, true));
-    itemCollection.addItem(new Item(4, 'batteries', 'The batteries did the trick, your flashlight works again', true, false, false));
+    // room number, item name, item description, takeable boolean, hasFiniteLife boolean, affectsRoomLock boolean, affectsHealthBoolean
+    itemCollection.addItem(new Item(1, 'note', 'Finding your way out a library can be challenging.  The key is to make sure everything is in its proper place.', true, false, false, false));
+    itemCollection.addItem(new Item(1, 'flashlight', 'Your flashlight is on!\n You can now see a note on the table and a small book on the floor.', true, true, false, false));
+    itemCollection.addItem(new Item(1, 'book', 'Reading the book was magical.  The lock on the door to the next room is now open', true, false, true, false));
+    itemCollection.addItem(new Item(2, 'screwdriver', 'congrats, you have unlocked the door to the dining room', true, false, true, false));
+    itemCollection.addItem(new Item(2, 'cookies', 'yummy cookies', true, false, false, true));
+    itemCollection.addItem(new Item(2, 'knife', 'a sharp ginsu knife', true, false, false, true));
+    itemCollection.addItem(new Item(3, 'vial', 'a vial full of a red liquid', true, false, false, true));
+    itemCollection.addItem(new Item(4, 'key', 'a silver key', true, true, false, false));
+    itemCollection.addItem(new Item(5, 'bandages', 'a box of gauss and bandages', true, false, false, true));
+    itemCollection.addItem(new Item(4, 'batteries', 'The batteries did the trick, your flashlight works again', true, false, false, false));
 
     // untakeable items
-    itemCollection.addItem(new Item(1, 'desk', 'a mahagony desk with a note, flashlight and book on it', false,false,false));
-    itemCollection.addItem(new Item(1, 'bookcase', 'a towering bookcase', false, false, false));
-    itemCollection.addItem(new Item(2, 'small desk', 'a small desk', false, false, false));
-    itemCollection.addItem(new Item(2, 'portrait', 'a portrait of a beautful woman', false, false, false));
-    itemCollection.addItem(new Item(3, 'drawer', 'cabinet drawer', false, false, false));
-    itemCollection.addItem(new Item(4, 'table', 'an oval dining table', false, false, false));
+    itemCollection.addItem(new Item(1, 'desk', 'a mahagony desk with a note, flashlight and book on it', false, false, false, false));
+    itemCollection.addItem(new Item(1, 'bookcase', 'a towering bookcase', false, false, false, false));
+    itemCollection.addItem(new Item(2, 'small desk', 'a small desk', false, false, false, false));
+    itemCollection.addItem(new Item(2, 'portrait', 'a portrait of a beautful woman', false, false, false, false));
+    itemCollection.addItem(new Item(3, 'drawer', 'cabinet drawer', false, false, false, false));
+    itemCollection.addItem(new Item(4, 'table', 'an oval dining table', false, false, false, false));
 
+    // Create player and display initial room description
     let player = new Player();
     player.observe();
 
+    // Loop and accept commands from player
     while (true) {
-        let answer = await ask(player.currentRoom.name + '>_');
+        let answer = await ask(player.currentRoom.name.toUpperCase() + '>_');
 
         userAction = answer.toLowerCase().trim();
 
@@ -339,24 +314,30 @@ async function start() {
         }
         else if (action === 'move') {
 
-            
             if (player.getInventoryItem('flashlight') === null ||
                 player.getInventoryItem('flashlight').useStatus === false) {
-                console.log('You trip and fall, ouch.  You take the flashlight and turn it on');
+                console.log('You trip and fall, ouch.  You should take the flashlight and turn it on');
             }
             else if (player.currentRoom.isLocked() === false) {
-                player.move(target)
-                player.observe();
+                
+                // if player is wounded and they try to move, their health deteriorates more
+                if (player.healthStatus < 100) {
+                    player.healthStatus = player.healthStatus - 20;
+                }
 
                 if (player.healthStatus <= 0) {
                     console.log('Sorry, unfortunately you have met your demise and died!');
                     process.exit();
                 }
-                else if (parseInt(player.healthStatus) < 100) {
-                    player.healthStatus -= 20;
+                else if (player.healthStatus > 0 &&
+                    player.healthStatus < 100) {
                     console.log('Your still bleeding and getting weaker.  You have  ' + player.healthStatus + '% of your energy left!');
                     console.log('Find a way to patch that wound or your a goner!');
                 }
+
+                player.move(target)
+                player.observe();
+
             }
             else {
                 console.log('Sorry, you don\'t have the items you need to move from this room yet');
@@ -383,10 +364,10 @@ async function start() {
 
         // check for win condition
         if (player.currentRoom.name === 'master bedroom' &&
-                player.getInventoryItem('knife') !== null) {
-                console.log('You win!');
-                process.exit();
-            }
+            player.getInventoryItem('knife') !== null) {
+            console.log('You win!');
+            process.exit();
+        }
     }
 }
 
