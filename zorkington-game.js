@@ -1,3 +1,9 @@
+// gameConfig represents main objects involved in game
+ let gameConfig = {
+    house : null,
+    player : null
+}
+
 class House {
     constructor() {
         this.roomCollection = [];
@@ -170,8 +176,8 @@ class Player {
         // Don't remove flashlight from inventory, once player has it, they always keep these items.
         if (item.name != null &&
             (item.name != 'flashlight' &&
-            item.name != 'batteries' &&
-            item.name != 'bandages')) {
+                item.name != 'batteries' &&
+                item.name != 'bandages')) {
             this.removeInventoryItem(item);
         }
 
@@ -184,7 +190,7 @@ class Player {
     // remove an item from a player's inventory
     removeInventoryItem(itemWanted) {
         const index = this.inventory.indexOf(itemWanted);
-        
+
         if (index > -1) {
             this.inventory.splice(index, 1);
         }
@@ -260,7 +266,7 @@ class Player {
             return true;
         }
     }
-    
+
     // Apply any helpful or detrimental effects that an item may have on a player when they use it.
     applyHealthEffects(item) {
         if (item === 'knife' &&
@@ -284,7 +290,7 @@ class Player {
         // if a player is wounded or ill, decrement their health further
         if (action === 'move' &&
             this.healthLevel < 100) {
-            this.healthLevel = this.healthLevel - 20;   
+            this.healthLevel = this.healthLevel - 20;
         }
     }
 
@@ -390,23 +396,19 @@ function isGameOver(player) {
     }
 }
 
-async function start() {
-
-    // Display Intro Text
-    showIntro();
+function setupGame() {
 
     //Create house and rooms
     house = new House();
 
     // room number, column, row, room name, room description, roomLocked boolean 
-    house.addRoom(new Room(1, 1, 1, 'Library', 'You are in the library.\nEvery wall in this room is lined from floor to ceiling with books, but one bookcase along the eastern wall appears much shorter than the rest.\n','', true))
+    house.addRoom(new Room(1, 1, 1, 'Library', 'You are in the library.\nEvery wall in this room is lined from floor to ceiling with books, but one bookcase along the eastern wall appears much shorter than the rest.\n', '', true))
     house.addRoom(new Room(2, 1, 2, 'Closet', 'You are in the bathroom closet.\nThe closet is full of useless cleaning supplies and stacks of towels.', 'Nestled amongst the cleaning supplies, you find a box of batteries!', false))
     house.addRoom(new Room(3, 2, 1, 'Kitchen', 'You are in the kitchen.\nThe room appears to have been completely ransacked some time ago. All of the cabinets and drawers are hanging open. The only way out appears to be a set of large doors on the southern side of the room.\nThe doors are locked from the other side.', 'You see a few glints of silver in the light of your flashlight. A knife lay in one of the drawers, while a screwdriver can be seen lying on the floor in the corner.', true))
     house.addRoom(new Room(4, 2, 2, 'Dining room', 'You are in the dining room.\nA long wooden table sits in the center of the room. There are no place settings at the table except for one.\nSomeone must have been expecting company...\nYou see nothing helpful to grab in this room.\nThe way south out of the dining room opens to another room.', '', false))
     house.addRoom(new Room(5, 2, 3, 'Study', 'You are in the study.\nThere is a large oak desk in the room with several drawers. Mostly faded portraits can be seen on every wall except for the western side of the room.', 'One of the portraits is haning askew, sitting on the floor below it is a small brass key.', true))
     house.addRoom(new Room(6, 1, 3, 'Bathroom', 'You are in the bathroom.\nThere\'s a large, rusted tub in the northern half of the room with a closet door next to it. The door to the next room lies to the south.\nThe mirror above the sink has been shattered to reveal a hidden medicine cabinet.', 'You can just see some bandages laying inside.', false))
     house.addRoom(new Room(7, 1, 4, 'Master Bedroom', 'You are in the master bedroom.\nThere is a very large four poster bed dominating most of the room. Several enormous windows line the far wall, big enough to climb out of!\nBut before you can make your way over to them, a humungous creature steps out of the darkness!\nThe largest, most vicious dog you\'ve ever seen is standing between you and the escape!', '', false))
-
 
     // Create items that exist in rooms in house
     itemCollection = new ItemCollection();
@@ -418,9 +420,7 @@ async function start() {
     itemCollection.addItem(new Item(1, 'book', 'You slide the book onto the shelf in the empty space between the "W" & "Y" encyclopedia books.\nYou hear the click of a lock being undone. The bookcase creaks open!\nYou are now able to move East to the next room!', true, false, true, false));
     itemCollection.addItem(new Item(2, 'batteries', 'You put the fresh batteries in your flashlight.\nYour flashlight is at full power!', true, false, false, false));
     itemCollection.addItem(new Item(3, 'screwdriver', 'You slide the narrow end of the screwdriver between the dining room doors and slide it up.\nThe latch on the other side lifts!\nYou\'ve unlocked the door to the dining room!', true, false, true, false));
-    //itemCollection.addItem(new Item(3, 'cookies', 'yummy cookies', true, false, false, true));
     itemCollection.addItem(new Item(3, 'knife', '', true, false, false, true));
-    //itemCollection.addItem(new Item(4, 'vial', 'a vial full of a red liquid', true, false, false, true));
     itemCollection.addItem(new Item(5, 'key', 'The key fits perfectly into the drawers in the desk!\nYou open each drawer to find them all empty....except for one. There\'s a small button hidden deep inside the drawer.\nYou press the button and a section of the western wall slides back to reveal a hidden entry into a bathroom!', true, false, true, false));
     itemCollection.addItem(new Item(6, 'bandages', 'You use the bandages to wrap the cut on your hand.\nThe bleeding stops! You may just survive this house!', true, false, false, false));
 
@@ -432,9 +432,23 @@ async function start() {
     itemCollection.addItem(new Item(3, 'drawer', '', false, false, false, false));
     itemCollection.addItem(new Item(4, 'table', '', false, false, false, false));
 
-    // Create player and display initial room description
+    // Create player, show game intro and display initial room description
+    
     let player = new Player();
+    player.house = house;
+
+    gameConfig.player = player;
+    gameConfig.house = house;
+
+    showIntro();
     player.observe();
+    return gameConfig;
+}
+
+async function start(gameConfig) {
+
+    let house = gameConfig.house;
+    let player = gameConfig.player;
 
     let validCommands = {
         take: ['get', 'grab', 'pickup'],
@@ -500,4 +514,5 @@ async function start() {
 }
 
 // Mainline
-start();
+gameConfig = setupGame();
+start(gameConfig);
