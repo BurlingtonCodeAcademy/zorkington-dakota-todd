@@ -1,0 +1,74 @@
+/* general page layout and fonts */
+@import url('https://fonts.googleapis.com/css2?family=Piazzolla:wght@300&display=swap');
+
+* {
+    margin: 0;
+    font-size: 16pt;
+    font-weight: bold;
+    font-family: 'Piazzolla', sans-serif;
+}
+
+img {
+    width: 25vw;
+    height: 25vw;
+}
+
+#game-wrapper {
+    display: grid;
+    grid-template-columns: 10vw 10vw 10vw;
+    height: 40vh;
+    width: 80vw; 
+    justify-content: left;
+    align-content: top;
+}
+
+#game-buttons {
+    display: flex;
+    margin: auto auto;
+    flex-direction: column;
+}
+
+#start {
+    display: flex;
+    margin: auto auto;
+}
+
+/*this is our header*/
+#header-container {
+    display: flex;
+    height: 15vh;
+    width: 100vw;
+    align-items: center;
+    justify-content: center;
+}
+
+h1 {
+    margin-top: 1vw;
+    padding-bottom: 2vw;
+    font-size: 40pt;
+    align-content: end;
+}
+
+#room-area {
+    display: flex;
+    width: 70vw;
+    height: 20vw;
+    float: left;
+}
+
+/* status box that displays text*/
+#status-area {
+    display: flex;
+    height: 5vh;
+    width: 25vw;
+    justify-content: center;
+    align-items: center;
+    border: 3vw black;
+    margin: 10vh;
+}
+
+/* buttons box */
+#button-container {
+    display: flex;
+    border: 2vw black;
+}
