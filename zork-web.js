@@ -26,10 +26,14 @@ class House {
     }
 
     isAdjacentRoom(currentRoom, newRoom) {
+
+        console.log('isAdjacent: ' + currentRoom.adjacentRooms);
         if (currentRoom.adjacentRooms.includes(newRoom)) {
+            console.log('returning true')
             return true;
         }
         else {
+            console.log('returning false')
             return false;
         }
     }
@@ -143,6 +147,7 @@ class Player {
                 break;
         }
 
+        console.log('new room is: ' + house.getRoom(newColumn, newRow).name);
         // Only allow player to move to an adjacent room.
         if ((house.getRoom(newColumn, newRow) === null) ||
             (house.isAdjacentRoom(this.currentRoom, house.getRoom(newColumn, newRow).name) === false)) {
@@ -156,7 +161,7 @@ class Player {
             statusArea.innerText = '';
 
             if (this.currentRoom.image != '') {
-                document.getElementById('room-image').src=this.currentRoom.imageName;
+                document.getElementById('room-image').src = this.currentRoom.imageName;
             }
 
             return true;
@@ -213,8 +218,7 @@ class Player {
 
     // Display room description of the current room
     observe() {
-        console.log(this.currentRoom)
-        gameInfoArea = document.getElementById('gameInfoArea');
+        gameInfoArea = document.getElementById('game-info-area');
         gameInfoArea.innerText = this.currentRoom.fullDescription;
     }
 
@@ -224,7 +228,7 @@ class Player {
         statusArea.innerText = ''
         if (this.inventory.length > 0) {
             for (const item of this.inventory) {
-                statusArea.innerText += item.name + ' '
+                statusArea.innerText += item.name + '\n '
             }
         }
         else {
@@ -270,7 +274,7 @@ class Player {
 
         if (flashlight === null ||
             flashlight.useStatus === false) {
-            statusArea.innerText = 'You trip and fall, ouch. It\'s too dark to see anything!\nWhy don\'t you take the flashlight and turn it on?';
+            statusArea.innerText = 'You trip and fall, ouch. It\'s too dark to see anything! Why don\'t you take the flashlight and turn it on?';
             return false;
         }
         else if (flashlight.life === 0) {
@@ -287,9 +291,7 @@ class Player {
     applyHealthEffects(item) {
         if (item === 'knife' &&
             this.isBandaged === false) {
-            statusArea.innerText = 'The knife was sharp!\nYou\'ve grabbed it from the wrong end and cut yourself!' +
-                'In shock you\'ve dropped the bloody knife onto the floor!' +
-                'You\'ll need to find some bandages quickly!';
+            statusArea.innerText = 'The knife was sharp! You\'ve grabbed it from the wrong end and cut yourself! In shock you\'ve dropped the bloody knife onto the floor! You\'ll need to find some bandages quickly!';
             this.inventory.pop();
         }
         else if (item === 'bandages' &&
@@ -352,7 +354,7 @@ class Player {
 
         if (flashlight != null &&
             flashlight.life < 50) {
-                statusArea.innerText ='Your flashlight batteries are low! ' + flashlight.life + '% power left!\n' +
+            statusArea.innerText = 'Your flashlight batteries are low! ' + flashlight.life + '% power left!\n' +
                 'Start looking for batteries soon or you\'ll find no escape!';
         }
     }
@@ -392,7 +394,7 @@ function isGameOver(player) {
     // check for win condition
     if (player.currentRoom.name === 'Master Bedroom' &&
         player.getInventoryItem('knife') !== null) {
-            statusArea.innerHTML ='At the sight of the bloody knife in your hand, the seemingly vicious dog starts to whimper!  The cowardly dog dives under the bed, leaving your path to freedom clear! ' +
+        statusArea.innerHTML = 'At the sight of the bloody knife in your hand, the seemingly vicious dog starts to whimper!  The cowardly dog dives under the bed, leaving your path to freedom clear! ' +
             'You rush to the window and fling it wide open! The cold night air fills your lungs as you climb down the lattice to freedom! You run as far away from that terrifying house as your legs will take you, hopeful to never return!';
         process.exit();
     }
@@ -412,27 +414,27 @@ function setupGame() {
     house = new House();
 
     // room number, column, row, room name, adjacent rooms, room description, roomLocked boolean
-    house.addRoom(new Room(1, 1, 1, 'Library', ['Kitchen'], 'You are in the library.\nEvery wall in this room is lined from floor to ceiling with books, but one bookcase along the eastern wall appears much shorter than the rest.\n', '', true, 'library.jpg'))
-    house.addRoom(new Room(2, 1, 2, 'Closet', ['Bathroom'], 'You\'ve moved north into the bathroom closet.\nThe closet is full of useless cleaning supplies and stacks of towels.', 'Nestled amongst the cleaning supplies, you find a box of batteries!', false, 'bathcloset.jpg'))
-    house.addRoom(new Room(3, 2, 1, 'Kitchen', ['Dining Room', 'Library'], 'You are in the kitchen.\nThe room appears to have been completely ransacked some time ago. All of the cabinets and drawers are hanging open. The only way out appears to be a set of large doors on the southern side of the room.\nThe doors are locked from the other side.', 'You see a few glints of silver in the light of your flashlight. A knife lay in one of the drawers, while a screwdriver can be seen lying on the floor in the corner.', true, 'kitchen.jpg'))
-    house.addRoom(new Room(4, 2, 2, 'Dining Room', ['Study', 'Closet'], 'You are in the dining room.\nA long wooden table sits in the center of the room. There are no place settings at the table except for one.\nSomeone must have been expecting company...\nYou see nothing helpful to grab in this room.\nThe southern end of the dining room opens to another room.', '', false, 'diningroom.jpg'))
-    house.addRoom(new Room(5, 2, 3, 'Study', ['Master Bedroom', 'Bathroom'], 'You are in the study.\nThere is a large oak desk in the room with several drawers. Mostly faded portraits can be seen on every wall except for the western side of the room.', 'One of the portraits is haning askew, sitting on the floor below it is a small brass key.', true, 'study.jpg'))
-    house.addRoom(new Room(6, 1, 3, 'Bathroom', ['Master Bedroom', 'Closet'], 'You are in the bathroom.\nThere\'s a large, rusted tub in the northern half of the room with a closet door next to it. The door to the next room lies to the south.\nThe mirror above the sink has been shattered to reveal a hidden medicine cabinet.', 'You can just see some bandages laying inside.', false, 'bathroom.jpg'))
-    house.addRoom(new Room(7, 1, 4, 'Master Bedroom'['Study', 'Bathroom'], 'You\'ve moved south into the master bedroom.\nThere is a very large four poster bed dominating most of the room. Several enormous windows line the far wall, big enough to climb out of!\nBut before you can make your way over to them, a humungous creature steps out of the darkness!\nThe largest, most vicious dog you\'ve ever seen is standing between you and the escape!', '', false, 'bedroom.jpg'))
+    house.addRoom(new Room(1, 1, 1, 'Library', ['Kitchen'], 'You are in the library.  Every wall in this room is lined from floor to ceiling with books, but one bookcase along the eastern wall appears much shorter than the rest.', '', true, 'library.jpg'))
+    house.addRoom(new Room(2, 1, 2, 'Closet', ['Bathroom'], 'You\'ve moved north into the bathroom closet.  The closet is full of useless cleaning supplies and stacks of towels.', 'Nestled amongst the cleaning supplies, you find a box of batteries!', false, 'bathcloset.jpg'))
+    house.addRoom(new Room(3, 2, 1, 'Kitchen', ['Dining Room', 'Library'], 'You are in the kitchen. The room appears to have been completely ransacked some time ago. All of the cabinets and drawers are hanging open. The only way out appears to be a set of large doors on the southern side of the room.  The doors are locked from the other side.', 'You see a few glints of silver in the light of your flashlight. A knife lay in one of the drawers, while a screwdriver can be seen lying on the floor in the corner.', true, 'kitchen.jpg'))
+    house.addRoom(new Room(4, 2, 2, 'Dining Room', ['Study', 'Closet'], 'You are in the dining room. A long wooden table sits in the center of the room. There are no place settings at the table except for one.  Someone must have been expecting company...  You see nothing helpful to grab in this room.  The southern end of the dining room opens to another room.', '', false, 'diningroom.jpg'))
+    house.addRoom(new Room(5, 2, 3, 'Study', ['Master Bedroom', 'Bathroom'], 'You are in the study. There is a large oak desk in the room with several drawers. Mostly faded portraits can be seen on every wall except for the western side of the room.', 'One of the portraits is haning askew, sitting on the floor below it is a small brass key.', true, 'study.jpg'))
+    house.addRoom(new Room(6, 1, 3, 'Bathroom', ['Master Bedroom', 'Closet'], 'You are in the bathroom. There\'s a large, rusted tub in the northern half of the room with a closet door next to it. The door to the next room lies to the south.  The mirror above the sink has been shattered to reveal a hidden medicine cabinet.', 'You can just see some bandages laying inside.', false, 'bathroom.jpg'))
+    house.addRoom(new Room(7, 1, 4, 'Master Bedroom'['Study', 'Bathroom'], 'You\'ve moved south into the master bedroom. There is a very large four poster bed dominating most of the room. Several enormous windows line the far wall, big enough to climb out of!  But before you can make your way over to them, a humungous creature steps out of the darkness!  The largest, most vicious dog you\'ve ever seen is standing between you and the escape!', '', false, 'bedroom.jpg'))
 
     // Create items that exist in rooms in house
     itemCollection = new ItemCollection();
 
     // first create takeable items
     // room number, item name, item description, takeable boolean, hasFiniteLife boolean, affectsRoomLock boolean, affectsHealthBoolean, life
-    itemCollection.addItem(new Item(1, 'note', 'Welcome you to my home stranger.\nLet\'s see if you can find your way out!,', true, false, false, false));
-    itemCollection.addItem(new Item(1, 'flashlight', 'Your flashlight is on!\nYou can now see a small table next to a comfortable looking chair meant for reading.\nOn the table is a book with a faded "X" on the spine, underneath it looks to be a handwritten note.', true, true, false, false, 100));
-    itemCollection.addItem(new Item(1, 'book', 'You slide the book onto the shelf in the empty space between the "W" & "Y" encyclopedia books.\nYou hear the click of a lock being undone. The bookcase creaks open!\nYou are now able to move East to the next room!', true, false, true, false));
-    itemCollection.addItem(new Item(2, 'batteries', 'You put the fresh batteries in your flashlight.\nYour flashlight is at full power!', true, false, false, false));
-    itemCollection.addItem(new Item(3, 'screwdriver', 'You slide the narrow end of the screwdriver between the dining room doors and slide it up.\nThe latch on the other side lifts!\nYou\'ve unlocked the door and can now move south into the dining room!', true, false, true, false));
+    itemCollection.addItem(new Item(1, 'note', 'Welcome you to my home stranger.  Let\'s see if you can find your way out!,', true, false, false, false));
+    itemCollection.addItem(new Item(1, 'flashlight', 'Your flashlight is on!  You can now see a small table next to a comfortable looking chair meant for reading. On the table is a book with a faded "X" on the spine, underneath it looks to be a handwritten note.', true, true, false, false, 100));
+    itemCollection.addItem(new Item(1, 'book', 'You slide the book onto the shelf in the empty space between the "W" & "Y" encyclopedia books.  You hear the click of a lock being undone. The bookcase creaks open!  You are now able to move East to the next room!', true, false, true, false));
+    itemCollection.addItem(new Item(2, 'batteries', 'You put the fresh batteries in your flashlight.  Your flashlight is at full power!', true, false, false, false));
+    itemCollection.addItem(new Item(3, 'screwdriver', 'You slide the narrow end of the screwdriver between the dining room doors and slide it up. The latch on the other side lifts!  You\'ve unlocked the door and can now move south into the dining room!', true, false, true, false));
     itemCollection.addItem(new Item(3, 'knife', '', true, false, false, true));
-    itemCollection.addItem(new Item(5, 'key', 'The key fits perfectly into the drawers in the desk!\nYou open each drawer to find them all empty....except for one. There\'s a small button hidden deep inside the drawer.\nYou press the button and a section of the western wall slides back to reveal a hidden entry into a bathroom!', true, false, true, false));
-    itemCollection.addItem(new Item(6, 'bandages', 'You use the bandages to wrap the cut on your hand.\nThe bleeding stops! You may just survive this house!', true, false, false, false));
+    itemCollection.addItem(new Item(5, 'key', 'The key fits perfectly into the drawers in the desk!  You open each drawer to find them all empty....except for one. There\'s a small button hidden deep inside the drawer.  You press the button and a section of the western wall slides back to reveal a hidden entry into a bathroom!', true, false, true, false));
+    itemCollection.addItem(new Item(6, 'bandages', 'You use the bandages to wrap the cut on your hand.  The bleeding stops! You may just survive this house!', true, false, false, false));
 
     // create untakeable items
     itemCollection.addItem(new Item(1, 'desk', '', false, false, false, false));
@@ -447,7 +449,7 @@ function setupGame() {
 }
 
 function executeCommand() {
-  
+
     command = document.getElementById('action').value;
     document.getElementById('action').value = '';
 
@@ -460,9 +462,12 @@ function executeCommand() {
 
     //  take action based on player's input
     if (action === 'exit') {
-        statusArea.InnerText ='Thanks for playing! It\'s a shame you couldn\'t find your way out!';
+        statusArea.InnerText = 'Thanks for playing! It\'s a shame you couldn\'t find your way out!';
     }
     else if (action === 'move') {
+
+        console.log('items needed? ' + player.hasItemsNeeded())
+        console.log('isOpen: ' + player.currentRoom.isOpen())
 
         if (player.hasItemsNeeded() &&
             player.currentRoom.isOpen()) {
@@ -506,13 +511,13 @@ function executeCommand() {
 
 // Mainline
 // Obtain reference to DOM objects and add listeners
-let gameInfoArea = document.getElementById('gameInfoArea');
+let gameInfoArea = document.getElementById('game-info-area');
 let action = document.getElementById('action');
 let statusArea = document.getElementById('statusArea');
 action.addEventListener('keypress', function (evt) {
     if (evt.key === 'Enter') {
         executeCommand();
-    }    
+    }
 });
 
 let player = '';

@@ -8,30 +8,7 @@
     font-family: 'Piazzolla', sans-serif;
 }
 
-img {
-    width: 25vw;
-    height: 25vw;
-}
 
-#game-wrapper {
-    display: grid;
-    grid-template-columns: 10vw 10vw 10vw;
-    height: 40vh;
-    width: 80vw; 
-    justify-content: left;
-    align-content: top;
-}
-
-#game-buttons {
-    display: flex;
-    margin: auto auto;
-    flex-direction: column;
-}
-
-#start {
-    display: flex;
-    margin: auto auto;
-}
 
 /*this is our header*/
 #header-container {
@@ -49,26 +26,37 @@ h1 {
     align-content: end;
 }
 
-#room-area {
+#info-area-container {
     display: flex;
-    width: 70vw;
-    height: 20vw;
-    float: left;
+    justify-content: center;
+} 
+
+#game-info-area {
+    width: 50vw;
 }
 
-/* status box that displays text*/
-#status-area {
-    display: flex;
-    height: 5vh;
+#room-image {
     width: 25vw;
-    justify-content: center;
-    align-items: center;
-    border: 3vw black;
-    margin: 10vh;
+    height: 25vw;
 }
 
 /* buttons box */
-#button-container {
+#command-area {
     display: flex;
-    border: 2vw black;
+    flex-direction: column;
+    margin-left: 10vw;
 }
+
+#action {
+    width: 25vw;
+    margin-left: 2vw;
+}
+
+#statusArea {
+    margin: 1vw;
+    padding: 2vw;
+    width: 45vw;
+    background-color: silver;
+    margin-left: 2vw;
+}
+
